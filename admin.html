@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Admin Panel</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0c10;color:#e2eaf4;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(0,200,255,.07),transparent 65%)}
+.login-box{width:360px;background:#141a22;border:1px solid #243448;border-radius:16px;padding:40px;position:relative}
+.login-box::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:linear-gradient(90deg,transparent,#00d4ff,transparent)}
+.login-logo{font-size:11px;letter-spacing:3px;color:#00d4ff;text-transform:uppercase;margin-bottom:22px;font-family:monospace}
+.login-title{font-size:26px;font-weight:800;margin-bottom:4px}
+.login-sub{font-size:13px;color:#7a90a8;margin-bottom:28px}
+.lf{margin-bottom:14px}
+.lf label{display:block;font-size:10px;letter-spacing:1.2px;color:#7a90a8;text-transform:uppercase;margin-bottom:6px;font-family:monospace}
+.lf input{width:100%;background:#0f1318;border:1px solid #243448;border-radius:9px;padding:11px 13px;color:#e2eaf4;font-size:14px;outline:none;transition:border-color .2s}
+.lf input:focus{border-color:#00d4ff}
+#login-btn{width:100%;background:#00d4ff;color:#000;font-weight:700;font-size:15px;border:none;border-radius:9px;padding:13px;cursor:pointer;margin-top:6px;transition:opacity .2s}
+#login-btn:hover{opacity:.85}
+#login-btn:disabled{opacity:.5;cursor:not-allowed}
+#l-err{font-size:12px;color:#ff3d5a;text-align:center;margin-top:12px;min-height:18px;font-family:monospace}
+
+/* APP */
+#app{display:none;flex-direction:column;min-height:100vh}
+.topbar{height:54px;background:#0f1318;border-bottom:1px solid #1f2d3d;display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:50}
+.tlogo{font-size:11px;color:#00d4ff;letter-spacing:3px;text-transform:uppercase;font-family:monospace}
+.tbadge{font-size:10px;background:rgba(0,212,255,.1);color:#00d4ff;border:1px solid rgba(0,212,255,.25);border-radius:4px;padding:3px 9px;font-family:monospace}
+.tout{margin-left:auto;background:none;border:1px solid #1f2d3d;color:#7a90a8;font-size:12px;padding:5px 13px;border-radius:6px;cursor:pointer}
+.tout:hover{border-color:#ff3d5a;color:#ff3d5a}
+.page{flex:1;padding:28px 24px 80px;max-width:1280px;margin:0 auto;width:100%}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{background:#141a22;border:1px solid #1f2d3d;border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.stat.s1::after{background:#00d4ff}.stat.s2::after{background:#00f077}.stat.s3::after{background:#ffb300}.stat.s4::after{background:#b388ff}
+.slabel{font-size:9px;letter-spacing:1.5px;color:#7a90a8;text-transform:uppercase;margin-bottom:8px;font-family:monospace}
+.sval{font-size:30px;font-weight:800;line-height:1}
+.stat.s1 .sval{color:#00d4ff}.stat.s2 .sval{color:#00f077}.stat.s3 .sval{color:#ffb300}.stat.s4 .sval{color:#b388ff}
+
+/* CARD */
+.card{background:#141a22;border:1px solid #1f2d3d;border-radius:14px;margin-bottom:20px;overflow:hidden}
+.card-head{padding:16px 22px;border-bottom:1px solid #1f2d3d;display:flex;align-items:center;justify-content:space-between}
+.card-head h2{font-size:14px;font-weight:700}
+.card-body{padding:22px}
+
+/* FORM */
+.frow{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+.ff label{display:block;font-size:10px;letter-spacing:1px;color:#7a90a8;text-transform:uppercase;margin-bottom:5px;font-family:monospace}
+.ff input{width:100%;background:#0f1318;border:1px solid #243448;border-radius:8px;padding:9px 12px;color:#e2eaf4;font-size:13px;outline:none;transition:border-color .2s}
+.ff input:focus{border-color:#00d4ff}
+.addbtn{background:#00d4ff;color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;padding:0 18px;cursor:pointer;height:37px;white-space:nowrap}
+.addbtn:hover{opacity:.85}
+.fmsg{margin-top:10px;font-size:12px;font-family:monospace;min-height:16px}
+.ok{color:#00f077}.err{color:#ff3d5a}
+
+/* TABLE */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:9px;letter-spacing:1.5px;color:#7a90a8;text-transform:uppercase;padding:0 12px 10px;border-bottom:1px solid #1f2d3d;font-family:monospace}
+tbody tr{border-bottom:1px solid #1f2d3d;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+td{padding:12px;vertical-align:middle}
+.wid{font-family:monospace;font-size:11px;background:rgba(0,212,255,.08);color:#00d4ff;border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:2px 7px}
+.link-txt{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;font-size:10px;color:#7a90a8}
+.no-link{font-family:monospace;font-size:10px;color:#3a4d62;font-style:italic}
+.used-link{font-family:monospace;font-size:10px;color:#ffb300}
+.code-sm{font-family:monospace;font-size:9px;color:#3a4d62;margin-top:2px}
+.nc{color:#00d4ff;font-family:monospace;font-weight:600}
+.ng{color:#00f077;font-family:monospace;font-weight:600}
+.na{color:#ffb300;font-family:monospace;font-weight:600}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}
+.dot.on{background:#00f077;box-shadow:0 0 6px #00f077}.dot.off{background:#3a4d62}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.abtn{background:none;border:1px solid #1f2d3d;color:#7a90a8;font-size:10px;padding:4px 9px;border-radius:4px;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:monospace}
+.abtn:hover{border-color:#00d4ff;color:#00d4ff}
+.abtn.danger:hover{border-color:#ff3d5a;color:#ff3d5a}
+.abtn.warn:hover{border-color:#ffb300;color:#ffb300}
+.empty-row{text-align:center;padding:40px;color:#7a90a8;font-family:monospace}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:#141a22;border:1px solid #243448;border-radius:16px;padding:30px;width:440px;max-width:95vw}
+.modal h3{font-size:17px;font-weight:800;margin-bottom:6px}
+.modal .msub{font-size:11px;color:#7a90a8;font-family:monospace;margin-bottom:20px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.mcancel{background:none;border:1px solid #243448;color:#7a90a8;font-size:13px;padding:9px 18px;border-radius:8px;cursor:pointer}
+.mcancel:hover{color:#e2eaf4}
+.msave{background:#00d4ff;color:#000;font-weight:700;font-size:13px;border:none;border-radius:8px;padding:9px 22px;cursor:pointer}
+.msave:hover{opacity:.85}
+.msave.red{background:#ff3d5a;color:#fff}
+.mmsg{font-family:monospace;font-size:10px;margin-top:8px;min-height:14px}
+
+@media(max-width:800px){.stats{grid-template-columns:1fr 1fr}.frow{grid-template-columns:1fr 1fr}.frow .addbtn{grid-column:span 2}}
+</style>
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⬡ Referral System</div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">Sign in to manage your workers</div>
+    <div class="lf">
+      <label>Username</label>
+      <input id="l-user" type="text" placeholder="Enter username" autocomplete="off" spellcheck="false"/>
+    </div>
+    <div class="lf">
+      <label>Password</label>
+      <input id="l-pass" type="password" placeholder="Enter password" autocomplete="off"/>
+    </div>
+    <button id="login-btn" onclick="doLogin()">Sign In</button>
+    <div id="l-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <span class="tlogo">⬡ REF-SYS</span>
+    <span class="tbadge">ADMIN</span>
+    <button class="tout" onclick="doLogout()">Sign Out</button>
+  </div>
+  <div class="page">
+
+    <div class="stats">
+      <div class="stat s1"><div class="slabel">Active Workers</div><div class="sval" id="s-workers">0</div></div>
+      <div class="stat s2"><div class="slabel">Total Clicks</div><div class="sval" id="s-clicks">0</div></div>
+      <div class="stat s3"><div class="slabel">Claim Clicked</div><div class="sval" id="s-claims">0</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>➕ Create Worker</h2></div>
+      <div class="card-body">
+        <div class="frow">
+          <div class="ff"><label>Worker ID (e.g. JOHN)</label><input id="w-id" type="text" placeholder="Custom ID"/></div>
+          <div class="ff"><label>Full Name</label><input id="w-name" type="text" placeholder="Worker name"/></div>
+          <div class="ff"><label>Password</label><input id="w-pass" type="password" placeholder="Set password"/></div>
+        </div>
+        <div class="frow" style="margin-top:10px">
+          <div class="ff"><label>Referral Link (optional)</label><input id="w-link" type="text" placeholder="https://yoursite.com"/></div>
+          <button class="addbtn" onclick="createWorker()">+ Create Worker</button>
+        </div>
+        <div class="fmsg" id="create-msg"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>👥 Workers</h2>
+        <button class="abtn" onclick="loadWorkers()">↻ Refresh</button>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead><tr>
+            <th>ID</th><th>Name</th><th>Referral Link</th>
+            <th>Clicks</th><th>Claim Clicked</th>
+            <th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="workers-body"><tr><td colspan="7" class="empty-row">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LINK MODAL -->
+<div class="overlay" id="link-modal">
+  <div class="modal">
+    <h3>Assign / Update Link</h3>
+    <div class="msub" id="lm-info"></div>
+    <div class="lf"><label>Destination URL</label>
+      <input id="lm-url" type="text" placeholder="https://yoursite.com/page"/></div>
+    <div class="modal-actions">
+      <button class="mcancel" onclick="closeModal('link-modal')">Cancel</button>
+      <button class="msave" onclick="saveLink()">Save Link</button>
+    </div>
+    <div class="mmsg" id="lm-msg"></div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirm-modal">
+  <div class="modal">
+    <h3 id="cm-title">Confirm</h3>
+    <div class="msub" id="cm-info"></div>
+    <div class="modal-actions">
+      <button class="mcancel" onclick="closeModal('confirm-modal')">Cancel</button>
+      <button class="msave red" id="cm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+// API URL is auto-detected from the current host, or falls back to /api
+var API = '';
+
+// Try to get API URL from server config, fallback to current origin
+async function initApiUrl() {
+  try {
+    var r = await fetch('/api/config');
+    var d = await r.json();
+    API = d.apiUrl || '';
+  } catch(e) {
+    API = window.location.origin;
+  }
+}
+
+var TOKEN = '';
+var editId = '';
+
+// ── LOGIN ─────────────────────────────────────────────────────
+async function doLogin() {
+  var u   = document.getElementById('l-user').value.trim();
+  var p   = document.getElementById('l-pass').value;
+  var err = document.getElementById('l-err');
+  var btn = document.getElementById('login-btn');
+
+  err.textContent = '';
+
+  if (!u || !p) {
+    err.textContent = 'Please enter username and password';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    var resp = await fetch(API + '/api/admin/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ username: u, password: p })
+    });
+
+    var data = await resp.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Login failed');
+    }
+
+    TOKEN = data.token;
+    showApp();
+
+  } catch(e) {
+    err.textContent = e.message === 'Failed to fetch'
+      ? 'Cannot reach server. Make sure npm start is running.'
+      : e.message;
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Sign In';
+}
+
+function doLogout() {
+  TOKEN = '';
+  document.getElementById('app').style.display          = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('l-pass').value               = '';
+  document.getElementById('l-err').textContent          = '';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display          = 'flex';
+  loadWorkers();
+}
+
+document.getElementById('l-pass').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('l-user').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') document.getElementById('l-pass').focus();
+});
+
+// ── API HELPER ────────────────────────────────────────────────
+async function api(method, url, body) {
+  var opts = {
+    method:  method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  var r = await fetch(API + url, opts);
+  if (r.status === 401) { doLogout(); throw new Error('Session expired — please log in again'); }
+  return r.json();
+}
+
+// ── WORKERS ───────────────────────────────────────────────────
+async function loadWorkers() {
+  try {
+    var d  = await api('GET', '/api/admin/workers');
+    var ws = d.workers || [];
+    document.getElementById('s-workers').textContent  = ws.filter(function(w){return w.isActive}).length;
+    document.getElementById('s-clicks').textContent   = ws.reduce(function(a,w){return a+w.totalClicks},0);
+    document.getElementById('s-claims').textContent   = ws.reduce(function(a,w){return a+w.totalClaims},0);
+    renderTable(ws);
+  } catch(e) { console.error('loadWorkers:', e.message); }
+}
+
+function renderTable(ws) {
+  var tb = document.getElementById('workers-body');
+  if (!ws.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty-row">No workers yet — create one above</td></tr>';
+    return;
+  }
+  tb.innerHTML = ws.map(function(w) {
+    var lc = '';
+    if (!w.referralLink) {
+      lc = '<span class="no-link">No link assigned</span>';
+    } else if (w.linkCleared) {
+      lc = '<span class="used-link">⚡ Used — assign new link</span>';
+    } else {
+      lc = '<div class="link-txt" title="' + w.referralLink + '">' + w.referralLink + '</div>'
+         + '<div class="code-sm">code: ' + w.referralCode + '</div>';
+    }
+    return '<tr>'
+      + '<td><span class="wid">' + w.workerId + '</span></td>'
+      + '<td><b>' + w.name + '</b></td>'
+      + '<td>' + lc + '</td>'
+      + '<td><span class="nc">' + w.totalClicks + '</span></td>'
+      + '<td><span class="ng">' + w.totalClaims + '</span></td>'
+      + '<td><span class="dot ' + (w.isActive?'on':'off') + '"></span>'
+      + '<span style="font-size:12px;color:' + (w.isActive?'#00f077':'#7a90a8') + '">' + (w.isActive?'Active':'Inactive') + '</span></td>'
+      + '<td><div class="acts">'
+      + '<button class="abtn" onclick="openLinkModal(\'' + w.workerId + '\',\'' + (w.referralLink||'').replace(/'/g,"\\'") + '\',\'' + w.name + '\')">'
+      + (w.referralLink ? 'Edit Link' : 'Assign Link') + '</button>'
+      + (w.referralLink ? '<button class="abtn warn" onclick="confirmDelLink(\'' + w.workerId + '\',\'' + w.name + '\')">Del Link</button>' : '')
+      + '<button class="abtn ' + (w.isActive?'warn':'') + '" onclick="toggleW(\'' + w.workerId + '\')">' + (w.isActive?'Deactivate':'Activate') + '</button>'
+      + '<button class="abtn danger" onclick="confirmDelWorker(\'' + w.workerId + '\',\'' + w.name + '\')">Delete</button>'
+      + '</div></td></tr>';
+  }).join('');
+}
+
+async function createWorker() {
+  var id   = document.getElementById('w-id').value.trim().toUpperCase();
+  var name = document.getElementById('w-name').value.trim();
+  var pass = document.getElementById('w-pass').value;
+  var link = document.getElementById('w-link').value.trim();
+  var msg  = document.getElementById('create-msg');
+  msg.textContent = '';
+  if (!id || !name || !pass) { msg.className='fmsg err'; msg.textContent='Worker ID, name and password are required.'; return; }
+  if (!/^[A-Z0-9\-_]{3,20}$/.test(id)) { msg.className='fmsg err'; msg.textContent='ID must be 3-20 chars (letters, numbers, -, _)'; return; }
+  if (pass.length < 4) { msg.className='fmsg err'; msg.textContent='Password must be at least 4 characters.'; return; }
+  if (link && !/^https?:\/\//.test(link)) { msg.className='fmsg err'; msg.textContent='Link must start with http:// or https://'; return; }
+  try {
+    var d = await api('POST', '/api/admin/workers', { workerId: id, name: name, password: pass, referralLink: link || undefined });
+    if (!d.success) throw new Error(d.error);
+    msg.className = 'fmsg ok';
+    msg.textContent = '✓ Created ' + d.worker.workerId + ' — ' + d.worker.name
+      + (d.worker.referralCode ? ' | Code: ' + d.worker.referralCode : '');
+    document.getElementById('w-id').value = '';
+    document.getElementById('w-name').value = '';
+    document.getElementById('w-pass').value = '';
+    document.getElementById('w-link').value = '';
+    loadWorkers();
+  } catch(e) { msg.className='fmsg err'; msg.textContent='✗ ' + e.message; }
+}
+
+async function toggleW(id) {
+  try { await api('PATCH', '/api/admin/workers/' + id + '/toggle'); loadWorkers(); }
+  catch(e) { alert(e.message); }
+}
+
+// ── LINK MODAL ────────────────────────────────────────────────
+function openLinkModal(id, cur, name) {
+  editId = id;
+  document.getElementById('lm-info').textContent = 'Worker: ' + name + ' (' + id + ')';
+  document.getElementById('lm-url').value        = cur || '';
+  document.getElementById('lm-msg').textContent  = '';
+  document.getElementById('link-modal').classList.add('show');
+}
+
+async function saveLink() {
+  var url = document.getElementById('lm-url').value.trim();
+  var msg = document.getElementById('lm-msg');
+  if (!url) { msg.className='mmsg err'; msg.textContent='URL cannot be empty'; return; }
+  if (!/^https?:\/\//.test(url)) { msg.className='mmsg err'; msg.textContent='URL must start with http:// or https://'; return; }
+  try {
+    var d = await api('PUT', '/api/admin/workers/' + editId + '/link', { referralLink: url });
+    if (!d.success) throw new Error(d.error);
+    msg.className='mmsg ok';
+    msg.textContent = '✓ Saved. Code: ' + d.referralCode;
+    loadWorkers();
+    setTimeout(function(){ closeModal('link-modal'); }, 1200);
+  } catch(e) { msg.className='mmsg err'; msg.textContent='✗ ' + e.message; }
+}
+
+// ── CONFIRM MODALS ────────────────────────────────────────────
+function confirmDelLink(id, name) {
+  document.getElementById('cm-title').textContent = 'Delete Link';
+  document.getElementById('cm-info').textContent  = 'Remove the referral link for ' + name + ' (' + id + ')?';
+  document.getElementById('cm-ok').onclick = async function() {
+    await api('DELETE', '/api/admin/workers/' + id + '/link');
+    closeModal('confirm-modal'); loadWorkers();
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function confirmDelWorker(id, name) {
+  document.getElementById('cm-title').textContent = 'Delete Worker';
+  document.getElementById('cm-info').textContent  = 'Permanently delete ' + name + ' (' + id + ')? Cannot be undone.';
+  document.getElementById('cm-ok').onclick = async function() {
+    await api('DELETE', '/api/admin/workers/' + id);
+    closeModal('confirm-modal'); loadWorkers();
+  };
+  document.getElementById('confirm-modal').classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  editId = '';
+}
+
+document.querySelectorAll('.overlay').forEach(function(o) {
+  o.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+// Initialize API URL on load
+initApiUrl();
+</script>
+</body>
+</html>
