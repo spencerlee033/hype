@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Login */
+        .login-card {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 32px;
+            color: #1f2937;
+            font-size: 1.6rem;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+        .btn-success { background: #10b981; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-info { background: #3b82f6; color: white; }
+        .btn-ghost { background: #f3f4f6; color: #4b5563; }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+
+        .hidden { display: none !important; }
+        .error-box {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            margin-top: 16px;
+        }
+
+        /* Dashboard */
+        .dashboard { display: none; }
+        .dashboard.active { display: block; }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .header h1 { font-size: 1.6rem; font-weight: 700; }
+        .header p { opacity: 0.85; margin-top: 4px; font-size: 0.9rem; }
+        .status-bar {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            position: relative;
+        }
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid #10b981;
+            animation: pulse 2s infinite;
+        }
+        .status-dot.offline {
+            background: #ef4444;
+        }
+        .status-dot.offline::after {
+            border-color: #ef4444;
+            animation: none;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 1.3rem;
+        }
+        .stat-card h3 { font-size: 1.8rem; font-weight: 700; color: #1f2937; }
+        .stat-card p { color: #6b7280; font-size: 0.85rem; margin-top: 4px; }
+
+        /* Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .nav-tab {
+            padding: 12px 20px;
+            background: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #6b7280;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-tab:hover {
+            background: #667eea;
+            color: white;
+        }
+        .nav-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .nav-tab .badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        /* Content */
+        .content-section {
+            display: none;
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .content-section.active { display: block; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-header h2 {
+            font-size: 1.3rem;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Search */
+        .search-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .search-row input, .search-row select {
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+        .search-row input:focus, .search-row select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .data-table th {
+            background: #f9fafb;
+            padding: 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 14px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #4b5563;
+        }
+        .data-table tr:hover { background: #f9fafb; }
+        .data-table code {
+            background: #f3f4f6;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-processed { background: #d1fae5; color: #065f46; }
+        .badge-forfeited { background: #fee2e2; color: #991b1b; }
+        .badge-expired { background: #f3f4f6; color: #4b5563; }
+        .badge-clash { background: #fee2e2; color: #991b1b; }
+
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* Timer */
+        .timer {
+            font-family: 'SF Mono', monospace;
+            color: #ef4444;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-header h2 { font-size: 1.4rem; color: #1f2937; }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: #f3f4f6; color: #4b5563; }
+
+        .detail-grid {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .detail-item {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        .detail-item strong {
+            display: block;
+            color: #667eea;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .detail-item span { color: #1f2937; font-size: 0.95rem; }
+
+        .message-box {
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            margin-top: 16px;
+        }
+        .message-box strong {
+            display: block;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .message-box pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: inherit;
+            color: #4b5563;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .message-box.warning {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .message-box.warning strong { color: #ef4444; }
+
+        /* Empty */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #9ca3af;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 16px; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; text-align: center; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav-tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .search-row { flex-direction: column; }
+            .search-row input, .search-row select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login -->
+        <div id="loginView">
+            <div class="login-card">
+                <h2><i class="fas fa-shield-alt" style="color: #667eea; margin-right: 10px;"></i>Admin Login</h2>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="username" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="Enter password">
+                </div>
+                <button class="btn btn-primary" onclick="login()">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+                <div id="loginError"></div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboardView" class="dashboard">
+            <div class="header">
+                <div>
+                    <h1><i class="fas fa-cogs"></i> Admin Panel</h1>
+                    <p>Referral System Management</p>
+                </div>
+                <div class="status-bar">
+                    <div class="status-pill">
+                        <div class="status-dot" id="groupBotDot"></div>
+                        <span id="groupBotStatus">Group Bot: Online</span>
+                    </div>
+                    <button class="btn btn-ghost" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon" style="background: #eff6ff; color: #3b82f6;"><i class="fas fa-users"></i></div>
+                    <h3 id="statWorkers">0</h3>
+                    <p>Active Workers</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #ecfdf5; color: #10b981;"><i class="fas fa-mouse-pointer"></i></div>
+                    <h3 id="statClicks">0</h3>
+                    <p>Total Clicks</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #f5f3ff; color: #8b5cf6;"><i class="fas fa-check-circle"></i></div>
+                    <h3 id="statClaims">0</h3>
+                    <p>Total Claims</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #fffbeb; color: #f59e0b;"><i class="fas fa-clock"></i></div>
+                    <h3 id="statPending">0</h3>
+                    <p>Pending</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #fef2f2; color: #ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 id="statClashes">0</h3>
+                    <p>Clashes</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #f3f4f6; color: #6b7280;"><i class="fas fa-times-circle"></i></div>
+                    <h3 id="statExpired">0</h3>
+                    <p>Expired</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon" style="background: #e0e7ff; color: #6366f1;"><i class="fas fa-sign-in-alt"></i></div>
+                    <h3 id="statActiveToday">0</h3>
+                    <p>Active Today</p>
+                </div>
+            </div>
+
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('workers')">
+                    <i class="fas fa-users"></i> Workers
+                </button>
+                <button class="nav-tab" onclick="showTab('visitors')">
+                    <i class="fas fa-eye"></i> Visitors
+                </button>
+                <button class="nav-tab" onclick="showTab('pending')">
+                    <i class="fas fa-clock"></i> Pending
+                    <span class="badge" id="pendingBadge">0</span>
+                </button>
+                <button class="nav-tab" onclick="showTab('claims')">
+                    <i class="fas fa-list"></i> All Claims
+                </button>
+                <button class="nav-tab" onclick="showTab('disputes')">
+                    <i class="fas fa-gavel"></i> Disputes
+                    <span class="badge" id="disputeBadge">0</span>
+                </button>
+                <button class="nav-tab" onclick="showTab('rules')">
+                    <i class="fas fa-sliders-h"></i> Rules
+                </button>
+            </div>
+
+            <!-- Workers -->
+            <div id="workersTab" class="content-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Workers</h2>
+                    <button class="btn btn-success" onclick="showCreateWorkerModal()">
+                        <i class="fas fa-plus"></i> Create Worker
+                    </button>
+                </div>
+                <div class="search-row">
+                    <input type="text" id="workerSearch" placeholder="Search by ID, name, or link..." oninput="searchWorkers()">
+                    <select id="workerStatusFilter" onchange="searchWorkers()">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Referral Link</th>
+                                <th>Clicks</th>
+                                <th>Claims</th>
+                                <th>Last Login</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workersTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Visitors -->
+            <div id="visitorsTab" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-eye"></i> Visitor Log</h2>
+                </div>
+                <div class="search-row">
+                    <input type="text" id="visitorSearch" placeholder="Search by IP, country, device..." oninput="searchVisitors()">
+                    <input type="date" id="visitorDateFrom" onchange="searchVisitors()">
+                    <input type="date" id="visitorDateTo" onchange="searchVisitors()">
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Worker</th>
+                                <th>IP</th>
+                                <th>Country</th>
+                                <th>Device</th>
+                                <th>Referrer</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="visitorsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pending -->
+            <div id="pendingTab" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-clock"></i> Pending Claims</h2>
+                </div>
+                <div class="search-row">
+                    <input type="text" id="pendingSearch" placeholder="Search by worker ID, IP..." oninput="searchPending()">
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Worker</th>
+                                <th>IP</th>
+                                <th>Country</th>
+                                <th>Device</th>
+                                <th>Time Remaining</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- All Claims -->
+            <div id="claimsTab" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-list"></i> All Claims</h2>
+                </div>
+                <div class="search-row">
+                    <input type="text" id="claimsSearch" placeholder="Search by claim ID, worker ID, IP..." oninput="searchClaims()">
+                    <select id="claimsStatusFilter" onchange="searchClaims()">
+                        <option value="">All Status</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="PROCESSED">Processed</option>
+                        <option value="FORFEITED">Forfeited</option>
+                        <option value="EXPIRED">Expired</option>
+                    </select>
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Worker</th>
+                                <th>IP</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Disputes -->
+            <div id="disputesTab" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-gavel"></i> Disputes & Clashes</h2>
+                </div>
+                <div class="search-row">
+                    <input type="text" id="disputeSearch" placeholder="Search by IP, worker ID..." oninput="searchDisputes()">
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Dispute ID</th>
+                                <th>IP</th>
+                                <th>Workers</th>
+                                <th>Claims</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="disputesTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rules -->
+            <div id="rulesTab" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-sliders-h"></i> Rules Configuration</h2>
+                </div>
+                <div id="rulesContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Worker Modal -->
+    <div id="createWorkerModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus" style="color: #667eea; margin-right: 10px;"></i>Create New Worker</h2>
+                <button class="modal-close" onclick="closeModal('createWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="newWorkerName" placeholder="Worker name">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="text" id="newWorkerPassword" placeholder="Password">
+            </div>
+            <div class="form-group">
+                <label>Referral Link (optional)</label>
+                <input type="text" id="newWorkerLink" placeholder="Leave empty for auto-generated">
+            </div>
+            <button class="btn btn-success" style="width: 100%;" onclick="createWorker()">
+                <i class="fas fa-check"></i> Create Worker
+            </button>
+        </div>
+    </div>
+
+    <!-- Edit Worker Modal -->
+    <div id="editWorkerModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit" style="color: #667eea; margin-right: 10px;"></i>Edit Worker</h2>
+                <button class="modal-close" onclick="closeModal('editWorkerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <input type="hidden" id="editWorkerId">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" id="editWorkerName">
+            </div>
+            <div class="form-group">
+                <label>Password (leave empty to keep current)</label>
+                <input type="text" id="editWorkerPassword" placeholder="New password">
+            </div>
+            <div class="form-group">
+                <label>Referral Link</label>
+                <input type="text" id="editWorkerLink">
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select id="editWorkerStatus">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+            <button class="btn btn-success" style="width: 100%;" onclick="updateWorker()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+
+    <!-- Claim Details Modal -->
+    <div id="claimDetailsModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-alt" style="color: #667eea; margin-right: 10px;"></i>Claim Details</h2>
+                <button class="modal-close" onclick="closeModal('claimDetailsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="claimDetailsContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'workers';
+        let workersData = [];
+        let visitorsData = [];
+        let claimsData = [];
+        let pendingData = [];
+        let disputesData = [];
+        let rulesData = {};
+
+        // ==================== AUTH ====================
+
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.innerHTML = '<div class="error-box">Please fill in all fields</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('adminSession', 'true');
+                    showDashboard();
+                } else {
+                    errorDiv.innerHTML = `<div class="error-box">${data.error || 'Invalid credentials'}</div>`;
+                }
+            } catch (error) {
+                errorDiv.innerHTML = '<div class="error-box">Connection error</div>';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminSession');
+            document.getElementById('dashboardView').classList.remove('active');
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function showDashboard() {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').classList.add('active');
+            loadAllData();
+        }
+
+        // ==================== DATA LOADING ====================
+
+        async function loadAllData() {
+            await Promise.all([
+                loadStats(),
+                loadWorkers(),
+                loadVisitors(),
+                loadPending(),
+                loadClaims(),
+                loadDisputes(),
+                loadRules(),
+                checkGroupBotStatus()
+            ]);
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/admin/stats');
+                const stats = await response.json();
+
+                document.getElementById('statWorkers').textContent = stats.activeWorkers || 0;
+                document.getElementById('statClicks').textContent = stats.totalClicks || 0;
+                document.getElementById('statClaims').textContent = stats.totalClaims || 0;
+                document.getElementById('statPending').textContent = stats.pendingClaims || 0;
+                document.getElementById('statClashes').textContent = stats.clashCount || 0;
+                document.getElementById('statExpired').textContent = stats.expiredCount || 0;
+                document.getElementById('statActiveToday').textContent = stats.activeToday || 0;
+
+                document.getElementById('pendingBadge').textContent = stats.pendingClaims || 0;
+                document.getElementById('disputeBadge').textContent = stats.clashCount || 0;
+            } catch (error) {
+                console.error('Stats error:', error);
+            }
+        }
+
+        async function loadWorkers() {
+            try {
+                const response = await fetch('/api/admin/workers');
+                workersData = await response.json();
+                renderWorkers();
+            } catch (error) {
+                console.error('Workers error:', error);
+            }
+        }
+
+        async function loadVisitors() {
+            try {
+                const response = await fetch('/api/admin/visitors');
+                visitorsData = await response.json();
+                renderVisitors();
+            } catch (error) {
+                console.error('Visitors error:', error);
+            }
+        }
+
+        async function loadPending() {
+            try {
+                const response = await fetch('/api/admin/pending');
+                pendingData = await response.json();
+                renderPending();
+            } catch (error) {
+                console.error('Pending error:', error);
+            }
+        }
+
+        async function loadClaims() {
+            try {
+                const response = await fetch('/api/admin/claims');
+                claimsData = await response.json();
+                renderClaims();
+            } catch (error) {
+                console.error('Claims error:', error);
+            }
+        }
+
+        async function loadDisputes() {
+            try {
+                const response = await fetch('/api/admin/disputes');
+                disputesData = await response.json();
+                renderDisputes();
+            } catch (error) {
+                console.error('Disputes error:', error);
+            }
+        }
+
+        async function loadRules() {
+            try {
+                const response = await fetch('/api/admin/rules');
+                rulesData = await response.json();
+                renderRules();
+            } catch (error) {
+                console.error('Rules error:', error);
+            }
+        }
+
+        async function checkGroupBotStatus() {
+            try {
+                const response = await fetch('/api/admin/group-bot-status');
+                const status = await response.json();
+
+                const dot = document.getElementById('groupBotDot');
+                const text = document.getElementById('groupBotStatus');
+
+                if (status.status === 'ONLINE') {
+                    dot.className = 'status-dot';
+                    text.textContent = 'Group Bot: Online';
+                } else {
+                    dot.className = 'status-dot offline';
+                    text.textContent = 'Group Bot: Offline';
+                }
+            } catch (error) {
+                const dot = document.getElementById('groupBotDot');
+                const text = document.getElementById('groupBotStatus');
+                dot.className = 'status-dot offline';
+                text.textContent = 'Group Bot: Error';
+            }
+        }
+
+        // ==================== RENDERING ====================
+
+        function renderWorkers() {
+            const tbody = document.getElementById('workersTable');
+            if (workersData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-users"></i><p>No workers yet</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = workersData.map(w => `
+                <tr>
+                    <td><strong>${w.id}</strong></td>
+                    <td>${w.name}</td>
+                    <td><code>${w.referralLink || 'N/A'}</code></td>
+                    <td>${w.clicks || 0}</td>
+                    <td>${w.claims || 0}</td>
+                    <td>${w.lastLoginAt ? new Date(w.lastLoginAt).toLocaleString() : '<span style="color:#9ca3af">Never</span>'}</td>
+                    <td><span class="status-badge badge-${w.status}">${w.status}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-info btn-sm" onclick="editWorker('${w.id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="assignLink('${w.id}')" title="Assign Link">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            <button class="btn btn-${w.status === 'active' ? 'danger' : 'success'} btn-sm" onclick="toggleStatus('${w.id}')" title="${w.status === 'active' ? 'Deactivate' : 'Activate'}">
+                                <i class="fas fa-${w.status === 'active' ? 'ban' : 'check'}"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderVisitors() {
+            const tbody = document.getElementById('visitorsTable');
+            if (visitorsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-eye"></i><p>No visitors yet</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = visitorsData.map(v => `
+                <tr>
+                    <td>${v.id}</td>
+                    <td>${v.workerId || 'N/A'}</td>
+                    <td><code>${v.ip}</code></td>
+                    <td>${v.country}</td>
+                    <td>${v.device}</td>
+                    <td>${v.referrer}</td>
+                    <td>${new Date(v.timestamp).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPending() {
+            const tbody = document.getElementById('pendingTable');
+            if (pendingData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-clock"></i><p>No pending claims</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pendingData.map(p => `
+                <tr>
+                    <td><strong>${p.id}</strong></td>
+                    <td>${p.workerId}</td>
+                    <td><code>${p.ip}</code></td>
+                    <td>${p.country}</td>
+                    <td>${p.device}</td>
+                    <td>
+                        <div><span class="timer">${p.timeRemainingText}</span></div>
+                        <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">Created: ${p.createdAt ? new Date(p.createdAt).toLocaleString() : new Date(p.timestamp).toLocaleString()}</div>
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewClaimDetails('${p.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderClaims() {
+            const tbody = document.getElementById('claimsTable');
+            if (claimsData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="fas fa-list"></i><p>No claims yet</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = claimsData.map(c => `
+                <tr>
+                    <td><strong>${c.id}</strong></td>
+                    <td>${c.workerId}</td>
+                    <td><code>${c.ip}</code></td>
+                    <td><span class="status-badge badge-${c.status.toLowerCase()}">${c.status}</span></td>
+                    <td>
+                        <div style="font-size: 0.85rem;">
+                            <div><strong>Created:</strong> ${c.createdAt ? new Date(c.createdAt).toLocaleString() : new Date(c.timestamp).toLocaleString()}</div>
+                            ${c.processedAt ? `<div style="color: #667eea;"><strong>Processed:</strong> ${new Date(c.processedAt).toLocaleString()}</div>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewClaimDetails('${c.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderDisputes() {
+            const tbody = document.getElementById('disputesTable');
+            if (disputesData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-gavel"></i><p>No disputes yet</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = disputesData.map(d => `
+                <tr>
+                    <td><strong>${d.id}</strong></td>
+                    <td><code>${d.ip}</code></td>
+                    <td>${d.workerIds.join(', ')}</td>
+                    <td>${d.claimIds.length}</td>
+                    <td><span class="status-badge badge-clash">${d.resolution}</span></td>
+                    <td>${new Date(d.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewDisputeDetails('${d.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderRules() {
+            const container = document.getElementById('rulesContent');
+            container.innerHTML = `
+                <div style="display: grid; gap: 20px; max-width: 600px;">
+                    <div class="form-group">
+                        <label>Wallet Keyword (trigger for claim matching)</label>
+                        <input type="text" id="ruleWalletKeyword" value="${rulesData.walletKeyword || ''}" placeholder="Leave empty to match any message with IP">
+                        <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 6px;">If set, only messages containing this keyword will be matched with claims</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Auto-Forward Patterns (comma-separated emojis/keywords)</label>
+                        <input type="text" id="ruleAutoForward" value="${(rulesData.autoForwardPatterns || []).join(',')}" placeholder="👀,✍️,✅">
+                        <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 6px;">Messages containing these will be auto-forwarded to group</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Pending Timeout (hours)</label>
+                        <input type="number" id="ruleTimeout" value="${rulesData.pendingTimeoutHours || 2}" min="1" max="48">
+                        <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 6px;">How long claims wait before expiring</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Match Field</label>
+                        <select id="ruleMatchField">
+                            <option value="ip" ${rulesData.matchField === 'ip' ? 'selected' : ''}>IP Address</option>
+                            <option value="wallet" ${rulesData.matchField === 'wallet' ? 'selected' : ''}>Wallet Address</option>
+                        </select>
+                        <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 6px;">Field used to match group messages with pending claims</p>
+                    </div>
+                    <button class="btn btn-success" onclick="saveRules()" style="width: 100%;">
+                        <i class="fas fa-save"></i> Save Rules
+                    </button>
+                </div>
+            `;
+        }
+
+        // ==================== SEARCH ====================
+
+        function searchWorkers() {
+            const search = document.getElementById('workerSearch').value.toLowerCase();
+            const status = document.getElementById('workerStatusFilter').value;
+
+            let filtered = workersData;
+            if (search) {
+                filtered = filtered.filter(w =>
+                    w.id.toLowerCase().includes(search) ||
+                    w.name.toLowerCase().includes(search) ||
+                    (w.referralLink && w.referralLink.toLowerCase().includes(search))
+                );
+            }
+            if (status) {
+                filtered = filtered.filter(w => w.status === status);
+            }
+
+            const tbody = document.getElementById('workersTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #9ca3af;">No matching workers</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(w => `
+                <tr>
+                    <td><strong>${w.id}</strong></td>
+                    <td>${w.name}</td>
+                    <td><code>${w.referralLink || 'N/A'}</code></td>
+                    <td>${w.clicks || 0}</td>
+                    <td>${w.claims || 0}</td>
+                    <td>${w.lastLoginAt ? new Date(w.lastLoginAt).toLocaleString() : '<span style="color:#9ca3af">Never</span>'}</td>
+                    <td><span class="status-badge badge-${w.status}">${w.status}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn btn-info btn-sm" onclick="editWorker('${w.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="assignLink('${w.id}')">
+                                <i class="fas fa-link"></i>
+                            </button>
+                            <button class="btn btn-${w.status === 'active' ? 'danger' : 'success'} btn-sm" onclick="toggleStatus('${w.id}')">
+                                <i class="fas fa-${w.status === 'active' ? 'ban' : 'check'}"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteWorker('${w.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchVisitors() {
+            const search = document.getElementById('visitorSearch').value.toLowerCase();
+            const dateFrom = document.getElementById('visitorDateFrom').value;
+            const dateTo = document.getElementById('visitorDateTo').value;
+
+            let filtered = visitorsData;
+            if (search) {
+                filtered = filtered.filter(v =>
+                    v.ip.toLowerCase().includes(search) ||
+                    v.country.toLowerCase().includes(search) ||
+                    v.device.toLowerCase().includes(search)
+                );
+            }
+            if (dateFrom) {
+                filtered = filtered.filter(v => v.timestamp >= new Date(dateFrom).getTime());
+            }
+            if (dateTo) {
+                filtered = filtered.filter(v => v.timestamp <= new Date(dateTo).getTime());
+            }
+
+            const tbody = document.getElementById('visitorsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #9ca3af;">No matching visitors</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(v => `
+                <tr>
+                    <td>${v.id}</td>
+                    <td>${v.workerId || 'N/A'}</td>
+                    <td><code>${v.ip}</code></td>
+                    <td>${v.country}</td>
+                    <td>${v.device}</td>
+                    <td>${v.referrer}</td>
+                    <td>${new Date(v.timestamp).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function searchPending() {
+            const search = document.getElementById('pendingSearch').value.toLowerCase();
+            let filtered = pendingData;
+
+            if (search) {
+                filtered = filtered.filter(p =>
+                    p.workerId.toLowerCase().includes(search) ||
+                    p.ip.includes(search) ||
+                    p.country.toLowerCase().includes(search)
+                );
+            }
+
+            const tbody = document.getElementById('pendingTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #9ca3af;">No matching pending claims</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td><strong>${p.id}</strong></td>
+                    <td>${p.workerId}</td>
+                    <td><code>${p.ip}</code></td>
+                    <td>${p.country}</td>
+                    <td>${p.device}</td>
+                    <td><span class="timer">${p.timeRemainingText}</span></td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewClaimDetails('${p.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchClaims() {
+            const search = document.getElementById('claimsSearch').value.toLowerCase();
+            const status = document.getElementById('claimsStatusFilter').value;
+
+            let filtered = claimsData;
+            if (search) {
+                filtered = filtered.filter(c =>
+                    c.id.toLowerCase().includes(search) ||
+                    c.workerId.toLowerCase().includes(search) ||
+                    c.ip.includes(search)
+                );
+            }
+            if (status) {
+                filtered = filtered.filter(c => c.status === status);
+            }
+
+            const tbody = document.getElementById('claimsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #9ca3af;">No matching claims</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => `
+                <tr>
+                    <td><strong>${c.id}</strong></td>
+                    <td>${c.workerId}</td>
+                    <td><code>${c.ip}</code></td>
+                    <td><span class="status-badge badge-${c.status.toLowerCase()}">${c.status}</span></td>
+                    <td>${new Date(c.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewClaimDetails('${c.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function searchDisputes() {
+            const search = document.getElementById('disputeSearch').value.toLowerCase();
+            let filtered = disputesData;
+
+            if (search) {
+                filtered = filtered.filter(d =>
+                    d.ip.includes(search) ||
+                    d.workerIds.some(id => id.toLowerCase().includes(search))
+                );
+            }
+
+            const tbody = document.getElementById('disputesTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #9ca3af;">No matching disputes</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(d => `
+                <tr>
+                    <td><strong>${d.id}</strong></td>
+                    <td><code>${d.ip}</code></td>
+                    <td>${d.workerIds.join(', ')}</td>
+                    <td>${d.claimIds.length}</td>
+                    <td><span class="status-badge badge-clash">${d.resolution}</span></td>
+                    <td>${new Date(d.timestamp).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="viewDisputeDetails('${d.id}')">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ==================== TABS ====================
+
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        // ==================== WORKER ACTIONS ====================
+
+        function showCreateWorkerModal() {
+            document.getElementById('createWorkerModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        async function createWorker() {
+            const name = document.getElementById('newWorkerName').value.trim();
+            const password = document.getElementById('newWorkerPassword').value;
+            const link = document.getElementById('newWorkerLink').value.trim();
+
+            if (!name || !password) {
+                alert('Name and password are required');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/workers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password, referralLink: link || undefined })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeModal('createWorkerModal');
+                    loadWorkers();
+                    document.getElementById('newWorkerName').value = '';
+                    document.getElementById('newWorkerPassword').value = '';
+                    document.getElementById('newWorkerLink').value = '';
+                } else {
+                    alert(data.error || 'Failed to create worker');
+                }
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        function editWorker(id) {
+            const worker = workersData.find(w => w.id === id);
+            if (!worker) return;
+
+            document.getElementById('editWorkerId').value = worker.id;
+            document.getElementById('editWorkerName').value = worker.name;
+            document.getElementById('editWorkerPassword').value = '';
+            document.getElementById('editWorkerLink').value = worker.referralLink || '';
+            document.getElementById('editWorkerStatus').value = worker.status;
+
+            document.getElementById('editWorkerModal').classList.remove('hidden');
+        }
+
+        async function updateWorker() {
+            const id = document.getElementById('editWorkerId').value;
+            const name = document.getElementById('editWorkerName').value.trim();
+            const password = document.getElementById('editWorkerPassword').value;
+            const link = document.getElementById('editWorkerLink').value.trim();
+            const status = document.getElementById('editWorkerStatus').value;
+
+            try {
+                const response = await fetch(`/api/admin/workers/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password, referralLink: link, status })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    closeModal('editWorkerModal');
+                    loadWorkers();
+                } else {
+                    alert(data.error || 'Failed to update worker');
+                }
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        async function assignLink(id) {
+            const link = prompt('Enter new referral link (leave empty for auto-generated):');
+            if (link === null) return;
+
+            try {
+                const response = await fetch(`/api/admin/workers/${id}/link`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadWorkers();
+                } else {
+                    alert(data.error || 'Failed to assign link');
+                }
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        async function toggleStatus(id) {
+            try {
+                const response = await fetch(`/api/admin/workers/${id}/toggle-status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                if (data.success) loadWorkers();
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        async function deleteWorker(id) {
+            if (!confirm('Are you sure? This will delete the worker and all associated data. This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/admin/workers/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadWorkers();
+                } else {
+                    alert(data.error || 'Failed to delete worker');
+                }
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        // ==================== CLAIM DETAILS ====================
+
+        async function viewClaimDetails(claimId) {
+            try {
+                const response = await fetch(`/api/claim/${claimId}`);
+                const claim = await response.json();
+
+                const content = document.getElementById('claimDetailsContent');
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <span class="status-badge badge-${claim.status.toLowerCase()}" style="font-size: 0.9rem; padding: 8px 16px;">${claim.status}</span>
+                    </div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <strong>Claim ID</strong>
+                            <span style="font-weight: 700; color: #667eea;">${claim.id}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Worker</strong>
+                            <span>${claim.workerName} (${claim.workerId})</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Referral Link</strong>
+                            <span><a href="${claim.workerLink}" target="_blank" style="color: #667eea;">${claim.workerLink}</a></span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Country</strong>
+                            <span>${claim.country}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Device</strong>
+                            <span>${claim.device}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>IP Address</strong>
+                            <span><code>${claim.ip}</code></span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Claim Time</strong>
+                            <span>${new Date(claim.timestamp).toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Created At</strong>
+                            <span>${claim.createdAt ? new Date(claim.createdAt).toLocaleString() : new Date(claim.timestamp).toLocaleString()}</span>
+                        </div>
+                        ${claim.processedAt ? `
+                        <div class="detail-item">
+                            <strong>Processed At</strong>
+                            <span>${new Date(claim.processedAt).toLocaleString()}</span>
+                        </div>
+                        ` : ''}
+                        ${claim.resolution ? `
+                        <div class="detail-item">
+                            <strong>Resolution</strong>
+                            <span style="text-transform: uppercase; font-weight: 600;">${claim.resolution}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${claim.groupMessage ? `
+                    <div class="message-box">
+                        <strong><i class="fab fa-telegram"></i> Message Sent to Telegram Group</strong>
+                        <pre>${escapeHtml(claim.groupMessage)}</pre>
+                    </div>
+                    ` : ''}
+                    ${claim.clashDetails ? `
+                    <div class="message-box warning">
+                        <strong><i class="fas fa-exclamation-triangle"></i> Clash Record</strong>
+                        <pre>Dispute ID: ${claim.clashDetails}
+
+This claim was automatically forfeited because multiple workers had the same IP address when a wallet connection message arrived in the group. No worker was assigned this claim.</pre>
+                    </div>
+                    ` : ''}
+                `;
+
+                document.getElementById('claimDetailsModal').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Claim details error:', error);
+            }
+        }
+
+        function viewDisputeDetails(disputeId) {
+            const dispute = disputesData.find(d => d.id === disputeId);
+            if (!dispute) return;
+
+            const content = document.getElementById('claimDetailsContent');
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <span class="status-badge badge-clash" style="font-size: 0.9rem; padding: 8px 16px;">${dispute.resolution}</span>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <strong>Dispute ID</strong>
+                        <span>${dispute.id}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>IP Address</strong>
+                        <span><code>${dispute.ip}</code></span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Workers Involved</strong>
+                        <span>${dispute.workerIds.join(', ')}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Claims Count</strong>
+                        <span>${dispute.claimIds.length}</span>
+                    </div>
+                    <div class="detail-item">
+                        <strong>Time</strong>
+                        <span>${new Date(dispute.timestamp).toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="message-box warning">
+                    <strong><i class="fas fa-info-circle"></i> Resolution</strong>
+                    <pre>All claims associated with this IP have been forfeited. No worker was assigned this claim due to multiple workers having the same IP address when a wallet message arrived.</pre>
+                </div>
+            `;
+
+            document.getElementById('claimDetailsModal').classList.remove('hidden');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ==================== RULES ====================
+
+        async function saveRules() {
+            const walletKeyword = document.getElementById('ruleWalletKeyword').value.trim();
+            const autoForward = document.getElementById('ruleAutoForward').value.split(',').map(s => s.trim()).filter(Boolean);
+            const timeout = parseInt(document.getElementById('ruleTimeout').value);
+            const matchField = document.getElementById('ruleMatchField').value;
+
+            try {
+                const response = await fetch('/api/admin/rules', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletKeyword,
+                        autoForwardPatterns: autoForward,
+                        pendingTimeoutHours: timeout,
+                        matchField
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Rules saved successfully');
+                    loadRules();
+                } else {
+                    alert(data.error || 'Failed to save rules');
+                }
+            } catch (error) {
+                alert('Connection error');
+            }
+        }
+
+        // ==================== INIT ====================
+
+        if (localStorage.getItem('adminSession')) {
+            showDashboard();
+        }
+
+        // Auto-refresh
+        setInterval(() => {
+            if (document.getElementById('dashboardView').classList.contains('active')) {
+                loadAllData();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
